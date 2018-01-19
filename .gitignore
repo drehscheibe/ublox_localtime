@@ -1,0 +1,5 @@
+*.o
+.build
+.target
+.gdb_history
+ublox_localtime

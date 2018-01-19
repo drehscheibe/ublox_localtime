@@ -1,0 +1,26 @@
+ublox_localtime configures an ublox neo-6 (or later) GPS receiver chip to send
+binary UBX NAV_TIMEUTC messages over the USB-serial interface. The received time
+is then converted to local time CET/MEZ (A time, UTC +1) or CEST/MESZ (B time,
+UTC +2) according to the DST rules of the EU (switch at 0100 UTC on the last
+Sunday in March and October). Date and time is displayed once per second together
+with the weekday and the ISO calendar week number.
+
+The sole purpose of this project is to play with the ublox receiver and to
+prepare for its use in an MCU clock project using libopencm3 and libnewlib.
+That's why the core elements of this code don't depend on sophisticated
+libraries and the calendar functions don't make plausibility checks for
+arguments. This is left as an exercise to the user.  :-)
+
+
+
+
+To get and build the latest source, do this:
+
+  $ git clone https://github.com/drehscheibe/ublox_localtime.git
+  $ cd ublox_localtime/
+  $ make
+
+  $ make help
+  $ make DEBUG=1
+
+The code is licensed under the MIT license as specified in file LICENSE.
