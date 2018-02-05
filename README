@@ -1,4 +1,4 @@
-ublox_localtime configures an ublox neo-6 (or later) GPS receiver chip to send
+ublox_localtime configures a ublox neo-6 (or later) GPS receiver chip to send
 binary UBX NAV_TIMEUTC messages over the USB-serial interface. The received time
 is then converted to local time CET/MEZ (A time, UTC +1) or CEST/MESZ (B time,
 UTC +2) according to the DST rules of the EU (switch at 0100 UTC on the last

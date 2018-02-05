@@ -262,8 +262,8 @@ static int gps_send_cmd(int fd, uint8_t cl, uint8_t id, const void *data, unsign
 	*p++ = UBX_SYNC2;
 	*p++ = cl;
 	*p++ = id;
-	*p++ = len & 0xff;
-	*p++ = (len >> 8) & 0xff;
+	*p++ = (uint8_t)len;
+	*p++ = (uint8_t)(len >> 8);
 
 	if (len) {
 		memcpy(p, data, len);

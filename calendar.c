@@ -1,7 +1,6 @@
 // Melchior FRANZ <mfranz@aon.at> 2018-01-19
 //
 #include <assert.h>
-#include <string.h>
 
 #include "calendar.h"
 
@@ -55,10 +54,9 @@ unsigned weekday(unsigned day, unsigned month, unsigned year) // 0..6  ->  sunda
 unsigned calendar_week(unsigned day, unsigned month, unsigned year) // 1..53
 {
 	int first_weekday = weekday(1, JANUARY, year);
-	int leap = is_leap_year(year);
+	bool leap = is_leap_year(year);
 	int last_weekday = (first_weekday + leap) % 7;
-	bool last_week_is_ours = last_weekday / THURSDAY;
-	int last_sunday = 365 + leap - last_weekday + last_week_is_ours * 7;
+	int last_sunday = 365 + leap - last_weekday + (last_weekday >= THURSDAY) * 7;
 
 	int doy = day_of_year(day, month, year);
 	if (doy > last_sunday)
