@@ -320,6 +320,37 @@ static void ubx_nav_timeutc(const struct nav_timeutc_t *utc)
 }
 
 
+static void ubx_nav_sol(const void *data)
+{
+	const struct nav_sol_t {
+		uint32_t iTOW;      // GPS Millisecond Time of Week [ms]
+		int32_t fTOW;       // Fractional Nanoseconds remainder of rounded ms above, range -500000 .. 500000 [ms]
+		int16_t week;       // week - GPS week (GPS time)
+		uint8_t gpsFix;     // GPSfix Type, range 0..5
+		uint8_t flags;      // Fix Status Flags
+		int32_t ecefX;      // ECEF X coordinate [cm]
+		int32_t ecefY;      // ECEF Y coordinate [cm]
+		int32_t ecefZ;      // ECEF Z coordinate [cm]
+		uint32_t pAcc;      // 3D Position Accuracy Estimate [cm]
+		int32_t ecefVX;     // ECEF X velocity [cm/s]
+		int32_t ecefVY;     // ECEF Y velocity [cm/s]
+		int32_t ecefVZ;     // ECEF Z velocity [cm/s]
+		uint32_t sAcc;      // Speed Accuracy Estimate [cm/s]
+		uint16_t pDOP;      // Position DOP [0.01]
+		uint8_t reserved1;  // Reserved
+		uint8_t numSV;      // Number of SVs used in Nav Solution
+		uint32_t reserved2; // Reserved
+	} *gps = (struct nav_sol_t *)data;
+
+	static const char *gps_fix_name[] = { "No Fix", "Dead Reckoning only", "2D-Fix", "3D-Fix",
+			"GPS + dead reckoning combined", "Time only fix" };
+
+	fprintf(stderr, "#%u %d (%s) %s \t", gps->numSV, gps->gpsFix,
+			gps->gpsFix > 5 ? "unknown" : gps_fix_name[gps->gpsFix],
+			(gps->flags & 1) ? "OK" : "NOK");
+}
+
+
 static void ubx_nav_timegps(const void *data)
 {
 	const struct nav_timegps_t {
@@ -374,6 +405,11 @@ static int ubx(uint8_t cl, uint8_t id, const uint8_t *data, int len)
 		case NAV_TIMEGPS:
 			if (len == 16)
 				ubx_nav_timegps(data);
+			break;
+
+		case NAV_SOL:
+			if (len == 52)
+				ubx_nav_sol(data);
 			break;
 
 		default:
@@ -529,6 +565,9 @@ int main(int argc, char *argv[])
 		perror("gps_send_cmd");
 
 	if (gps_send_cmd(fd, CFG, CFG_MSG, "\x01\x21\x00\x00\x00\x01\x00\x00", 8)) // turn on NAV_TIMEUTC on USB every 1 cycles
+		perror("gps_send_cmd");
+
+	if (gps_send_cmd(fd, CFG, CFG_MSG, "\x01\x06\x00\x00\x00\x01\x00\x00", 8)) // turn on NAV_SOL on USB every 1 cycles
 		perror("gps_send_cmd");
 
 	if (gps_send_cmd(fd, NAV, NAV_TIMEUTC, NULL, 0))
