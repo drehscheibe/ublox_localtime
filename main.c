@@ -270,8 +270,8 @@ static int gps_send_cmd(int fd, uint8_t cl, uint8_t id, const void *data, unsign
 		p += len;
 	}
 
-	struct fletcher8_t f = { 0 };
-	fl8_adds(&f, buf + 2, len + 4);
+	struct fletcher16_t f = { 0 };
+	fl16_adds(&f, buf + 2, len + 4);
 	*p++ = f.a;
 	*p++ = f.b;
 
@@ -664,8 +664,8 @@ int main(int argc, char *argv[])
 		case UBX_PAYLOAD:
 			*p++ = c;
 			if (p - buf == 4 + len + 2) {
-				struct fletcher8_t f = { 0 };
-				fl8_adds(&f, buf, 4 + len);
+				struct fletcher16_t f = { 0 };
+				fl16_adds(&f, buf, 4 + len);
 				if (p[-2] == f.a && p[-1] == f.b)
 					ubx(cl, id, buf + 4, len);
 				else
