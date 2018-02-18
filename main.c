@@ -213,7 +213,7 @@ void help()
 	printf("  -d, --device               device file (default: /dev/gps0)\n");
 	printf("  -h, --help                 this help screen\n");
 	printf("  -q, --quiet                reset verbosity\n");
-	printf("  -v, --verbose              verbose (up to four times: -vvvv)\n");
+	printf("  -v, --verbose              verbose (up to five times: -vvvvv)\n");
 }
 
 
@@ -232,7 +232,7 @@ static void irq_handler(int sig)
 
 static int gps_send_raw(int fd, const void *data, int len)
 {
-	if (verbose > 2) {
+	if (verbose > 3) {
 		fprintf(stderr, "> ");
 		for (int i = 0; i < len; i++)
 			fprintf(stderr, "\033[35m%02x\033[m ", ((const uint8_t *)data)[i]);
@@ -283,7 +283,7 @@ static void ubx_nav_timeutc(const struct nav_timeutc_t *utc)
 {
 	uint16_t year = le16toh(utc->year);
 
-	if (verbose)
+	if (verbose > 1)
 		fprintf(stderr, "\033[%dm%04u-%02u-%02u %02u:%02u:%02u UTC %+1.9lf s  acc %u ns  (%s)\033[m   ",
 				(utc->valid & 0x4) ? 32 : 31,
 				year, utc->month, utc->day,
@@ -304,7 +304,7 @@ static void ubx_nav_timeutc(const struct nav_timeutc_t *utc)
 	time_t epoch = mktime(&u);
 	if (epoch == -1)
 		perror("mktime");
-	if (verbose > 1)
+	if (verbose > 2)
 		fprintf(stderr, "%lu   ", (long unsigned)epoch);
 
 	struct tm l;
@@ -370,7 +370,7 @@ static void ubx_nav_timegps(const void *data)
 
 static int ubx(uint8_t cl, uint8_t id, const uint8_t *data, int len)
 {
-	if (verbose > 1) {
+	if (verbose > 2) {
 		fprintf(stderr, "\n\033[94mUBX: class 0x%02x, id 0x%02x, len %d: ", cl, id, len);
 		for (int i = 0; i < len; i++)
 			fprintf(stderr, "0x%02x ", data[i]);
@@ -381,12 +381,12 @@ static int ubx(uint8_t cl, uint8_t id, const uint8_t *data, int len)
 	case ACK:
 		switch (id) {
 		case ACK_ACK:
-			if (verbose > 1)
+			if (verbose > 2)
 				fprintf(stderr, "\033[92mack\033[m\n");
 			break;
 
 		case ACK_NAK:
-			if (verbose > 1)
+			if (verbose > 2)
 				fprintf(stderr, "\033[91mnak\033[m\n");
 			break;
 
@@ -408,7 +408,7 @@ static int ubx(uint8_t cl, uint8_t id, const uint8_t *data, int len)
 			break;
 
 		case NAV_SOL:
-			if (len == 52)
+			if (len == 52 && verbose > 0)
 				ubx_nav_sol(data);
 			break;
 
