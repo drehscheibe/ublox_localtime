@@ -292,6 +292,7 @@ static void ubx_nav_timeutc(const struct nav_timeutc_t *utc)
 				(unsigned)le32toh(utc->tAcc),
 				(utc->valid & 0x4) ? "valid" : "invalid");
 
+	bool is_switchday;
 	struct tm u = {
 		.tm_year = year - 1900,
 		.tm_mon = utc->month - JANUARY,
@@ -299,7 +300,7 @@ static void ubx_nav_timeutc(const struct nav_timeutc_t *utc)
 		.tm_hour = utc->hour + TIMEZONE,
 		.tm_min = utc->minute,
 		.tm_sec = utc->sec,
-		.tm_isdst = is_dst(utc->hour, utc->day, utc->month, year),
+		.tm_isdst = is_dst(utc->hour, utc->day, utc->month, year, &is_switchday),
 	};
 	time_t epoch = mktime(&u);
 	if (epoch == -1)
@@ -310,11 +311,20 @@ static void ubx_nav_timeutc(const struct nav_timeutc_t *utc)
 	struct tm l;
 	localtime_r(&epoch, &l);
 
+	// when switching back from DST to normal time, one hour repeats  02a:59:59 -> 02b:00:00
+	char hour_suffix = ':';
+	if (is_switchday && utc->month == OCTOBER) {
+		if (utc->hour == 0)      // UTC 00:00 is MESZ 02:00 or "02a:00"
+			hour_suffix = 'a';
+		else if (utc->hour == 1) // UTC 01:00 is MEZ 02:00 or "02b:00"
+			hour_suffix = 'b';
+	}
+
 	static const char *wd[] = { "So", "Mo", "Di", "Mi", "Do", "Fr", "Sa" };
-	fprintf(stderr, "\033[%dm%04u-%02u-%02u %02u:%02u:%02u %s %s W%u\033[m\n",
+	fprintf(stderr, "\033[%dm%04u-%02u-%02u %02u%c%02u:%02u %s %s W%u\033[m\n",
 			utc->valid ? 32 : 31,
 			l.tm_year + 1900, l.tm_mon + JANUARY, l.tm_mday,
-			l.tm_hour, l.tm_min, l.tm_sec,
+			l.tm_hour, hour_suffix, l.tm_min, l.tm_sec,
 			l.tm_isdst ? "MESZ" : "MEZ", wd[l.tm_wday],
 			calendar_week(l.tm_mday, l.tm_mon + JANUARY, l.tm_year + 1900));
 }

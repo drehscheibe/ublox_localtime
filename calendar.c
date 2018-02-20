@@ -78,20 +78,29 @@ unsigned calendar_week(unsigned day, unsigned month, unsigned year) // 1..53
 }
 
 
-bool is_dst(unsigned hour, unsigned day, unsigned month, unsigned year) // EU rules; UTC input
+bool is_dst(unsigned hour, unsigned day, unsigned month, unsigned year,
+		bool *switchday) // UTC input, EU rules
 {
+	if (switchday)
+		*switchday = false;
+
 	if (month > MARCH && month < OCTOBER)
 		return true;
 
 	if (month < MARCH || month > OCTOBER)
 		return false;
 
+	bool is_march = month == MARCH; // else OCTOBER
 	int last_sunday = 31 - weekday(31, month, year);
+
 	if (day < last_sunday)
-		return month == OCTOBER;
+		return !is_march;
 
 	if (day > last_sunday)
-		return month == MARCH;
+		return is_march;
 
-	return (month == MARCH) ^ (hour == 0);
+	if (switchday)
+		*switchday = true;
+
+	return is_march ^ !hour;
 }
