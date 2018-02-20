@@ -19,6 +19,8 @@
 #include "calendar.h"
 #include "fletcher.h"
 
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
+
 #define TIMEZONE 1  // A
 
 #define UBX_SYNC1 0xb5
@@ -356,8 +358,8 @@ static void ubx_nav_sol(const void *data)
 			"GPS + dead reckoning combined", "Time only fix" };
 
 	fprintf(stderr, "#%u %d (%s) %s \t", gps->numSV, gps->gpsFix,
-			gps->gpsFix > 5 ? "unknown" : gps_fix_name[gps->gpsFix],
-			(gps->flags & 1) ? "OK" : "NOK");
+			gps->gpsFix >= ARRAY_SIZE(gps_fix_name) ? "unknown" : gps_fix_name[gps->gpsFix],
+			(gps->flags & 1) ? "\033[32mOK\033[m" : "\033[31mNOK\033[m");
 }
 
 
