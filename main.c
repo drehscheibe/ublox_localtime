@@ -295,14 +295,16 @@ static void ubx_nav_timeutc(const struct nav_timeutc_t *utc)
 				(utc->valid & 0x4) ? "valid" : "invalid");
 
 	bool is_switchday;
+	bool dst = is_dst(utc->hour, utc->day, utc->month, year, &is_switchday);
+
 	struct tm u = {
 		.tm_year = year - 1900,
 		.tm_mon = utc->month - JANUARY,
 		.tm_mday = utc->day,
-		.tm_hour = utc->hour + TIMEZONE,
+		.tm_hour = utc->hour + TIMEZONE + dst,
 		.tm_min = utc->minute,
 		.tm_sec = utc->sec,
-		.tm_isdst = is_dst(utc->hour, utc->day, utc->month, year, &is_switchday),
+		.tm_isdst = dst,
 	};
 	time_t epoch = mktime(&u);
 	if (epoch == -1)
